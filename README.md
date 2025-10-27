@@ -6,6 +6,9 @@ I would NOT use this for any production environments, yet!!<br>
 If you would like to help contribute to this project, by all means go ahead and make Pull Requests!
 
 ## Getting Started
+You'll need to instal `bun` before doing anything.
+Here is how you can [install bun](https://bun.com/docs/installation#windows)
+
 To install dependencies:
 ```bash
 bun install
