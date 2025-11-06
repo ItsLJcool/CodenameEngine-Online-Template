@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client"
+  output = "./generated"
+  engineType = "client"
+  runtime = "bun"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @unique @default(uuid())
+  password      String    // Needs to be 6-32 characters long, contain a number, capital letter, and symbol. Hash the password and then store it.
+  username      String?
+  email         String?   @unique
+
+  // Connect with discord for RPC, and other shit
+  discord_id    String?   @unique
+  discord_name  String?
+
+  friends       Json?     // List of friends, as their User.id.
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
