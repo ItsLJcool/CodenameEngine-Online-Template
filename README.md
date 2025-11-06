@@ -13,16 +13,28 @@ To install dependencies:
 ```bash
 bun install
 ```
-
 You can use `.env` to set your Port and other environment variables.
 ```ini
 PORT=5000
+DATABASE_URL="file:./prisma/dev.db"
 ```
-
 PORT by default is set to `3000`.
 
-To run:
+For initalizing Prisma, you need to initalize migration and generate your prisma client.
+Go ahead and run these commands:
+```bash
+bunx --bun prisma migrate dev --name init
+bunx --bun prisma generate
+```
+If you see a folder inside `prisma` named `prisma` (`./prisma/prisma`) do not worry, it's a bug with Prisma and Bun. It is automatically handled with `db.ts`.
 
+To update the db and migrate your models just run the migration command and re-generate your prisma client.
+```bash
+bunx --bun prisma migrate dev --name <name-of-migration>
+bunx --bun prisma generate
+```
+
+To start the Server:
 ```bash
 bun start
 bun start:dev # for development

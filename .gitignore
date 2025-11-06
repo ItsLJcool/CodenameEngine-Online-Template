@@ -1,6 +1,11 @@
 # dependencies (bun install)
 node_modules
 
+# prisma db
+!prisma/db.ts
+!prisma/schema.prisma
+prisma/
+
 # output
 out
 dist
