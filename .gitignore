@@ -4,6 +4,7 @@ node_modules
 # prisma db
 !prisma/db.ts
 !prisma/schema.prisma
+!prisma/readme.md
 prisma/
 
 # output

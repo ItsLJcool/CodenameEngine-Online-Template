@@ -12,14 +12,16 @@ datasource db {
 
 model User {
   password      String    // Needs to be 6-32 characters long, contain a number, capital letter, and symbol. Hash the password and then store it.
-  username      String?
-  email         String   @unique @id
+  username      String    @unique
+  email         String    @unique @id // check if it's a valid emal btw
+  
+  display_name  String?
 
   // Connect with discord for RPC, and other shit
   discord_id    String?   @unique
   discord_name  String?
 
-  friends       Json?     // List of friends, as their User.id.
+  friends       Json?     // List of friends, by their @id
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

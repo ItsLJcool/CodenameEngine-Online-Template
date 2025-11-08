@@ -1,5 +1,6 @@
 import { PrismaClient } from "./generated/client";
 import { PrismaLibSQL } from "@prisma/adapter-libsql";
+import type { password } from "bun";
 import fs from "fs/promises";
 import path from "path";
 
@@ -21,7 +22,6 @@ export default prisma;
 .{6,32} 6-32 characters
 */
 export class User {
-    
     password: string = "";
     username: string = "";
     email: string = "";
@@ -39,7 +39,8 @@ export class User {
 
     async save() {
         const data = this.toPrisma();
-        if (await User.exists(this.email)) await prisma.user.update({ where: { email: this.email }, data });
+        if (await User.exists_email(this.email)) await prisma.user.update({ where: { email: this.email }, data });
+        else if (await User.exists_username(this.username)) await prisma.user.update({ where: { username: this.username }, data });
         else await prisma.user.create({ data });
         return this;
     }
@@ -63,10 +64,16 @@ export class User {
         return user;
     }
 
-    static async get(email:string) { return (await prisma.user.findUnique({ where: { email: email }, })); }
-    static async exists(email:string) { return ((await this.get(email)) != null); }
+    static async get_username(username:string, password?:string) {
+        if (password) return (await prisma.user.findUnique({ where: { username, password }, }));
+        return (await prisma.user.findUnique({ where: { username }, })); 
+    }
+    static async exists_username(username:string, password?:string) { return ((await this.get_username(username, password)) != null); }
+
+    static async get_email(email:string) { return (await prisma.user.findUnique({ where: { email }, })); }
+    static async exists_email(email:string) { return ((await this.get_email(email)) != null); }
 
     static async findMany() { return (await prisma.user.findMany()); }
     static async findFirst() { return (await prisma.user.findFirst()); }
-    static async deleteAll() { return (await prisma.user.deleteMany()); }
+    // static async deleteAll() { return (await prisma.user.deleteMany()); } // Scary!!!
 }
