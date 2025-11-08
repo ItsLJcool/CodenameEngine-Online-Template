@@ -10,7 +10,7 @@ WebSocketServer.on(WSEvent.ClientMessage, async (ws:Bun.ServerWebSocket, message
     const endpoint = request_header.shift();
 
     if (method !== "POST" || endpoint !== "/login") return;
-    
+
     const login_response = await login(message);
     if (!login_response) return ws.send(new WebSocketResponse(401, "Invalid Credentials").set("Content-Type", "application/text").toBuffer());
     ws.send(new WebSocketResponse(200, "Login Successful").set("Endpoint", "/login").set("Content-Type", "application/text").toBuffer());
@@ -21,6 +21,7 @@ async function login(message: HTTPHeader):Promise<Boolean> {
     const password = message.headers.get("password");
     if (username == undefined || password == undefined) return false;
     
+    // TODO: the Password here, from the client is NOT hashed, but it should be hashed before getting from the DB.
     const user = await User.get_username(username, password);
     if (!user) return false;
     return true;
