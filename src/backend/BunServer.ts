@@ -141,7 +141,10 @@ export class WebSocketServer {
 	static validateAndParseMessage(message: Buffer<ArrayBuffer>): WebSocketMessage {
 		const stringMessage = message.toString();
 
-		const headerBlock: HTTPHeader | Boolean = WebSocketServer.parseHttpHeaderBlock(stringMessage);
+		let headerBlock: Boolean | HTTPHeader = WebSocketServer.parseHttpHeaderBlock(stringMessage);
+		if (headerBlock instanceof HTTPHeader) return headerBlock;
+
+		headerBlock = WebSocketServer.parseCustomHeaderBlock(stringMessage);
 		if (headerBlock instanceof HTTPHeader) return headerBlock;
 
 		return message;
@@ -170,13 +173,41 @@ export class WebSocketServer {
 				const right = match[2];
 				if (!left || !right) continue;
 				httpHeader.headers.set(left.toLowerCase(), right);
-			} else return httpHeader;
+			} else break;
 		}
-
+		if (httpHeader.request.length <= 0 && httpHeader.headers.size <= 0 && httpHeader.content.length <= 0) return false;
 		httpHeader.content = (content ?? "");
 		return httpHeader;
 	}
 
+	// TODO: piss myself 😭😭
+	static parseCustomHeaderBlock(input: string): Boolean | HTTPHeader {
+		const lines = input.replace(/\r\n/g, "\n").split("\n");
+		if (lines.length <= 0) return false;
+		const httpHeader = new HTTPHeader();
+
+		let content = "";
+		let inContent = false;
+
+		const requestLineRegex = /^(?:[A-Z]+)\s+\/\S*\s+Version\/\d\.\d$/i;
+		if (requestLineRegex.test(lines[0]!.trim())) httpHeader.request = lines.shift()!.trim();
+
+		for (const line of lines) {
+			if (inContent) { content += (content ? "\n" : "") + line; continue; }
+			if (line.trim() === "") { inContent = true; continue; }
+
+			const match = line.match(/^([!#$%&'*+\-.^_`|~0-9A-Za-z]+):\s*(.+)$/);
+			if (match) {
+				const left = match[1];
+				const right = match[2];
+				if (!left || !right) continue;
+				httpHeader.headers.set(left.toLowerCase(), right);
+			} else break;
+		}
+		if (httpHeader.request.length <= 0 && httpHeader.headers.size <= 0 && httpHeader.content.length <= 0) return false;
+		httpHeader.content = (content ?? "");
+		return httpHeader;
+	}
 }
 
 const server = Bun.serve({
