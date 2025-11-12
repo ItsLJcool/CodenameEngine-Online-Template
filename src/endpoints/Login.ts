@@ -13,7 +13,7 @@ WebSocketServer.on(WSEvent.ClientMessage, async (ws: Bun.ServerWebSocket, messag
 
 	if (method !== "POST" || endpoint !== "/login") return;
 	
-	const info = request_header.shift()?.split("/").shift();
+	const info = request_header.shift()?.split("/").pop();
 	if (info !== LOGIN_VERISON) return ws.send(new WebSocketResponse(400, `Invalid Version.\nUse ${LOGIN_VERISON}`).set("Content-Type", "application/text").toBuffer());
 
 	const login_response = await login(message);
