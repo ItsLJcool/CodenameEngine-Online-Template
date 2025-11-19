@@ -21,8 +21,11 @@ export default prisma;
 (?=.*[^A-Za-z0-9]) special chars
 .{6,32} 6-32 characters
 */
+// email regex ^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$
 export class User {
-    password: string = "";
+    static EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    static PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,32}$/g;
+    password: string = ""; // this will be hashed btw
     username: string = "";
     email: string = "";
 
@@ -31,18 +34,21 @@ export class User {
 
     friends: string[] = [];
 
-    constructor(username:string, password:string, email:string) {
+    constructor(username:string, hash_password:string, email:string) {
         this.username = username;
-        this.password = password;
+        this.password = hash_password;
         this.email = email;
     }
 
-    async save() {
+    // Returns true if the user was saved, false if it failed to save.
+    async save(): Promise<Boolean> {
+        if (!User.EMAIL_REGEX.test(this.email)) return false;
+
         const data = this.toPrisma();
-        if (await User.exists_email(this.email)) await prisma.user.update({ where: { email: this.email }, data });
-        else if (await User.exists_username(this.username)) await prisma.user.update({ where: { username: this.username }, data });
+        if (await User.exists(this.email)) await prisma.user.update({ where: { email: this.email }, data });
         else await prisma.user.create({ data });
-        return this;
+
+        return true;
     }
 
     toPrisma() {
@@ -64,14 +70,8 @@ export class User {
         return user;
     }
 
-    static async get_username(username:string, password?:string) {
-        if (password) return (await prisma.user.findUnique({ where: { username, password }, }));
-        return (await prisma.user.findUnique({ where: { username }, })); 
-    }
-    static async exists_username(username:string, password?:string) { return ((await this.get_username(username, password)) != null); }
-
-    static async get_email(email:string) { return (await prisma.user.findUnique({ where: { email }, })); }
-    static async exists_email(email:string) { return ((await this.get_email(email)) != null); }
+    static async get(email:string) { return User.fromPrisma(await prisma.user.findUnique({ where: { email } })); }
+    static async exists(email:string) { return ((await this.get(email)) != null); }
 
     static async findMany() { return (await prisma.user.findMany()); }
     static async findFirst() { return (await prisma.user.findFirst()); }
